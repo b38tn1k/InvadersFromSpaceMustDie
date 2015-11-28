@@ -1,3 +1,32 @@
+function gradient(colors)
+    local direction = colors.direction or "horizontal"
+    if direction == "horizontal" then
+        direction = true
+    elseif direction == "vertical" then
+        direction = false
+    else
+        error("Invalid direction '" .. tostring(direction) "' for gradient.  Horizontal or vertical expected.")
+    end
+    local result = love.image.newImageData(direction and 1 or #colors, direction and #colors or 1)
+    for i, color in ipairs(colors) do
+        local x, y
+        if direction then
+            x, y = 0, i - 1
+        else
+            x, y = i - 1, 0
+        end
+        result:setPixel(x, y, color[1], color[2], color[3], color[4] or 255)
+    end
+    result = love.graphics.newImage(result)
+    result:setFilter('linear', 'linear')
+    return result
+end
+
+function drawinrect(img, x, y, w, h, r, ox, oy, kx, ky)
+    return -- tail call for a little extra bit of efficiency
+    love.graphics.draw(img, x, y, r, w / img:getWidth(), h / img:getHeight(), ox, oy, kx, ky)
+end
+
 function drawSprite(character, sprite)
   local sectionWidth = character.width / character.spriteDims[1]
   local sectionHeight = character.height / character.spriteDims[2]
@@ -48,7 +77,16 @@ function deepcopy(orig)
     return copy
 end
 
+function makeBomb(xPos, yPos)
+  local bomb = {}
+  bomb.x = xPos
+  bomb.y = yPos
+
+  table.insert(bombs, bomb)
+end
+
 function makeHero()
+  hero.ammo = 20
   hero.shots = {}
   hero.x = 300
   hero.y = 450
@@ -71,11 +109,12 @@ function makeEnemies()
     enemy.width = 44
     enemy.height = 32
     enemy.x = world.width * math.random()
-    enemy.y = -20
+    enemy.y = 0
     enemy.speed = enemies.speed
     enemy.r = math.random() * 255
     enemy.g = math.random() * 255
     enemy.b = math.random() * 255
+    enemy.a = 0
     enemy.spriteDims = {11, 8}
     enemy.sprite1 = {{0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0}, {0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0}, {0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0}, {0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0}, {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, {1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1}, {1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1}, {0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0}}
     enemy.sprite2 = {{0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0}, {1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1}, {1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1}, {1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, {0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0}, {0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0}, {0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0}}
@@ -83,11 +122,22 @@ function makeEnemies()
   end
 end
 
+function makeLife()
+  life.height = 20
+  life.width = 20
+  life.x = math.random(life.width, world.width - life.width)
+  life.y = world.ground - life.height
+  life.sprite = {}
+end
+
 function shoot()
-  local shot = {}
-  shot.x = hero.x + hero.width/2
-  shot.y = hero.y
-  table.insert(hero.shots, shot)
+  if hero.ammo > 0 then
+    local shot = {}
+    shot.x = hero.x + hero.width/2
+    shot.y = hero.y
+    table.insert(hero.shots, shot)
+    hero.ammo = hero.ammo - 1
+  end
 end
 
 function love.keyreleased(key)
@@ -135,7 +185,29 @@ function addMoreEnemies()
   end
 end
 
+function new2DRandomTable(xLength, yLenth)
+  print(xLength)
+  local new2D = {}
+  for i = 0, xLength do
+    local row = {}
+    for j = 0, yLenth do
+      table.insert(row, math.floor(math.random(0.5, 1.5)))
+    end
+  end
+end
+
+function newStar()
+  local star = {}
+  star.x = math.random(0, 800)
+  star.y = math.random(0, world.ground)
+  star.spriteDims = stars.spriteDims
+  star.width = stars.width
+  star.height = stars.height
+  return star
+end
+
 function love.load()
+  -- new2DRandomTable(10, 10)
   bg = love.graphics.newImage("bg.png")
   fg = love.graphics.newImage("fg.png")
   love.window.setTitle('Invaders Must Die')
@@ -147,11 +219,22 @@ function love.load()
   enemies = {}
   world = {}
   explosions = {}
+  bombs = {}
   world.width, world.height, world.flags = love.window.getMode()
   world.ground = 465
   world.tab = 20
   world.time = 0
   world.pause = true
+  bombs.probability = 0.995
+  stars = {}
+  stars.population = 50
+  stars.spriteDims = {5, 5}
+  stars.width = 4
+  stars.height = 4
+  stars.sprite = {{1, 0, 0, 0, 1}, {0, 1, 0, 1, 0}, {0, 0, 1, 0, 0}, {0, 1, 0, 1, 0}, {1, 0, 0, 0, 1}}
+  for i = 0, stars.population do
+    table.insert(stars, newStar())
+  end
   makeHero()
   makeEnemies()
 end
@@ -167,8 +250,27 @@ function love.update(dt)
     for i,v in ipairs(enemies) do
       v.y = v.y + dt * v.speed
       v.x = v.x + math.sin(v.random*(world.time + v.random))
+      if v.a < 255 then
+        v.a = v.a + 50*dt
+      end
+      if v.a >= 255 and math.random() > bombs.probability then
+        makeBomb(v.x + v.width/2, v.y)
+      end
       if v.y > (world.ground - v.height) then
         table.remove(enemies, i)
+        if hero.protectedUntil < world.time then
+          hero.lives = hero.lives - 1
+          hero.protectedUntil = world.time + 2
+        end
+      end
+    end
+    -- Control Bombs
+    for i,v in ipairs(bombs) do
+      v.y = v.y + dt * 500
+      if v.y > world.ground then
+        table.remove(bombs, i)
+      end
+      if CheckCollision(v.x, v.y, 2, 5, hero.x, hero.y, hero.width, hero.height) then
         if hero.protectedUntil < world.time then
           hero.lives = hero.lives - 1
           hero.protectedUntil = world.time + 2
@@ -183,13 +285,14 @@ function love.update(dt)
       end
       for ii, vv in ipairs(enemies) do
         if CheckCollision(v.x, v.y, 2, 5, vv.x, vv.y, vv.width, vv.height) then
+          hero.score = hero.score + math.ceil(vv.y / 100)
+          hero.ammo = hero.ammo + math.ceil(vv.y / 100)
           explosion = deepcopy(vv)
           explosion.sprite = vv.sprite1
           explosion.duration = world.time + 1
           table.insert(explosions, explosion)
           table.remove(enemies, ii)
           table.remove(hero.shots, i)
-          hero.score = hero.score + 1
         end
         if vv.x < 0 then
           vv.x = vv.x + world.width
@@ -202,6 +305,9 @@ function love.update(dt)
     for h, explosion in ipairs(explosions) do
       if explosion.duration < world.time then
         table.remove(explosions, h)
+      else
+        explosion.height = explosion.height - 1
+        explosion.width = explosion.width - 1
       end
     end
     if hero.lives < 1 then
@@ -217,12 +323,23 @@ function love.update(dt)
 end
 
 function love.draw()
+  -- The Sky
+  for i = 0, 600 do
+    love.graphics.setColor(20 + 2 * i, 15 + 2 * i, i*10, 255) -- ehh
+    love.graphics.rectangle("fill", 0, i*20, world.width, 20)
+  end
   -- The Ground
-  love.graphics.draw(bg)
-  love.graphics.draw(fg)
+  for i = 0, 40 do
+    love.graphics.setColor(100, 255 - i * 20, 60 , 255) -- ehh
+    love.graphics.rectangle("fill", 0, world.ground + i*20, world.width, 20)
+  end
+  -- The Stars
+  for i, star in ipairs(stars) do
+    love.graphics.setColor(255, 255, 0, 255 - star.y * 255/465)
+    drawSprite(star, stars.sprite)
+  end
   -- The Hero
   if hero.protectedUntil > world.time then
-    -- love.graphics.setColor(255 * math.random(), 255 * math.random(), 255 * math.random(), 255)
     explodeSprite(hero, hero.sprite)
   else
     love.graphics.setColor(255, 255, 0, 255)
@@ -236,18 +353,20 @@ function love.draw()
     drawSprite(tempHero, tempHero.sprite)
     i = i + 1
   end
+  love.graphics.setColor(255, 255, 255, 255)
   love.graphics.setFont(scoreFont)
-  love.graphics.printf(hero.score, world.tab, world.tab, world.width, 'left')
+  love.graphics.printf("SCORE " .. hero.score, world.tab, world.tab, world.width, 'left')
+  love.graphics.printf("AMMO  " .. hero.ammo, world.tab, 2 * world.tab, world.width, 'left')
   -- The Enemies
   for i, v in ipairs(enemies) do
-    love.graphics.setColor(v.r, v.g, v.b, 255)
+    love.graphics.setColor(v.r, v.g, v.b, v.a)
     if math.floor((world.time + v.random) * 3) % 2 == 0 then
       drawSprite(v, v.sprite2)
     else
       drawSprite(v, v.sprite1)
     end
   end
-  -- The explosions
+  -- The Explosions
   for h, explosion in ipairs(explosions) do
     explodeSprite(explosion, explosion.sprite)
   end
@@ -256,6 +375,12 @@ function love.draw()
   for i,v in ipairs(hero.shots) do
     love.graphics.rectangle("fill", v.x - hero.width / 2 + 3, v.y, 2, 5)
     love.graphics.rectangle("fill", v.x - 2 - hero.width / 2 + 3, v.y + 5, 6, 2) -- drawing bullets here is trivial / easier
+  end
+  -- The Bombs
+  love.graphics.setColor(255, 255, 255, 255)
+  for i,v in ipairs(bombs) do
+    love.graphics.rectangle("fill", v.x - hero.width / 2 + 3, v.y + 5, 2, 6)
+    love.graphics.rectangle("fill", v.x - 2 - hero.width / 2 + 3, v.y, 6, 2) -- drawing bullets here is trivial / easier
   end
   if world.pause then
     if hero.lives == 0 then
