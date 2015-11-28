@@ -149,6 +149,9 @@ function love.keyreleased(key)
     enemies = {}
     makeHero()
     makeEnemies()
+    explosions = {}
+    bombs = {}
+    bombs.probability = 0.995
     world.pause = false
     world.time = 0
   end
@@ -206,10 +209,20 @@ function newStar()
   return star
 end
 
+function newBuilding()
+  local building = {}
+  building.windows = {}
+  building.height = math.random(20, 300)
+  building.width = math.random(50, 150)
+  building.x = math.random(0, 800)
+  building.y = world.ground - building.height
+  building.random = math.random(50, 100)
+  return building
+end
+
 function love.load()
+  math.randomseed( os.time() )
   -- new2DRandomTable(10, 10)
-  bg = love.graphics.newImage("bg.png")
-  fg = love.graphics.newImage("fg.png")
   love.window.setTitle('Invaders Must Die')
   love.graphics.setBackgroundColor(255, 255, 255)
   titleFont = love.graphics.newFont("8-BIT WONDER.TTF", 100)
@@ -235,6 +248,12 @@ function love.load()
   for i = 0, stars.population do
     table.insert(stars, newStar())
   end
+  buildings = {} --could be city...
+  buildings.population = 10
+  for i = 0, buildings.population do
+    table.insert(buildings, newBuilding())
+  end
+
   makeHero()
   makeEnemies()
 end
@@ -253,7 +272,7 @@ function love.update(dt)
       if v.a < 255 then
         v.a = v.a + 50*dt
       end
-      if v.a >= 255 and math.random() > bombs.probability then
+      if v.a >= 255 and  bombs.probability < math.random() then
         makeBomb(v.x + v.width/2, v.y)
       end
       if v.y > (world.ground - v.height) then
@@ -337,6 +356,12 @@ function love.draw()
   for i, star in ipairs(stars) do
     love.graphics.setColor(255, 255, 0, 255 - star.y * 255/465)
     drawSprite(star, stars.sprite)
+  end
+  -- The City
+  for i, building in ipairs(buildings) do
+    love.graphics.setColor(building.random, building.random, building.random, 255)
+    love.graphics.rectangle("fill", building.x, building.y, building.width, building.height)
+
   end
   -- The Hero
   if hero.protectedUntil > world.time then
