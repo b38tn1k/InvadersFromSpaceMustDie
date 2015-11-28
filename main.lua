@@ -114,6 +114,15 @@ function makeEnemies()
     enemy.r = math.random() * 255
     enemy.g = math.random() * 255
     enemy.b = math.random() * 255
+    if enemy.r < enemy.g then
+      if enemy.g < enemy.b then
+        enemy.g = 255
+      else
+        enemy.r = 255
+      end
+    elseif enemy.b > enemy.r then
+      enemy.b = 255
+    end
     enemy.a = 0
     enemy.spriteDims = {11, 8}
     enemy.sprite1 = {{0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0}, {0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0}, {0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0}, {0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0}, {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, {1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1}, {1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1}, {0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0}}
@@ -212,7 +221,7 @@ end
 function newBuilding()
   local building = {}
   building.windows = {}
-  building.height = math.random(20, 300)
+  building.height = math.random(50, 300)
   building.width = math.random(50, 150)
   building.x = math.random(0, 800)
   building.y = world.ground - building.height
@@ -361,6 +370,9 @@ function love.draw()
   for i, building in ipairs(buildings) do
     love.graphics.setColor(building.random, building.random, building.random, 255)
     love.graphics.rectangle("fill", building.x, building.y, building.width, building.height)
+    love.graphics.setColor(building.random - 20, building.random - 20, building.random - 20, 255)
+    love.graphics.rectangle("fill", building.x, building.y, building.width/2, building.height)
+    love.graphics.setColor(255, 255, 0, 255)
 
   end
   -- The Hero
