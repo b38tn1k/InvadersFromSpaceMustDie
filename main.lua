@@ -1,32 +1,3 @@
-function gradient(colors)
-    local direction = colors.direction or "horizontal"
-    if direction == "horizontal" then
-        direction = true
-    elseif direction == "vertical" then
-        direction = false
-    else
-        error("Invalid direction '" .. tostring(direction) "' for gradient.  Horizontal or vertical expected.")
-    end
-    local result = love.image.newImageData(direction and 1 or #colors, direction and #colors or 1)
-    for i, color in ipairs(colors) do
-        local x, y
-        if direction then
-            x, y = 0, i - 1
-        else
-            x, y = i - 1, 0
-        end
-        result:setPixel(x, y, color[1], color[2], color[3], color[4] or 255)
-    end
-    result = love.graphics.newImage(result)
-    result:setFilter('linear', 'linear')
-    return result
-end
-
-function drawinrect(img, x, y, w, h, r, ox, oy, kx, ky)
-    return -- tail call for a little extra bit of efficiency
-    love.graphics.draw(img, x, y, r, w / img:getWidth(), h / img:getHeight(), ox, oy, kx, ky)
-end
-
 function drawSprite(character, sprite)
   local sectionWidth = character.width / character.spriteDims[1]
   local sectionHeight = character.height / character.spriteDims[2]
@@ -54,7 +25,7 @@ function explodeSprite(character, sprite)
       x = x + sectionWidth
       if col == 1 then
         if math.random() > 0.7 then
-          love.graphics.setColor(255 * math.random(), 255 * math.random(), 255 * math.random(), 255)
+          love.graphics.setColor(255, 255 * math.random(), 100 * math.random(), 255)
           love.graphics.rectangle("fill", x, y, sectionWidth, sectionHeight)
         end
       end
@@ -96,7 +67,9 @@ function makeHero()
   hero.lives = 3
   hero.protectedUntil = 0
   hero.score = 0
-  hero.sprite = {{0, 0, 0, 0, 1, 0, 0, 0, 0}, {0, 0, 0, 1, 1, 1, 0, 0, 0}, {0, 1, 1, 1, 1, 1, 1, 1, 0}, {1, 1, 1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1, 1, 1}}
+  hero.lifecost = 10
+  hero.ammocost = 5
+  hero.sprite = {{0, 0, 0, 0, 1, 0, 0, 0, 0}, {0, 0, 0, 1, 1, 1, 0, 0, 0}, {1, 1, 1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1, 1, 1}}
   hero.spriteDims = {9, 5}
 end
 
@@ -164,6 +137,20 @@ function love.keyreleased(key)
     world.pause = false
     world.time = 0
   end
+  if not world.pause then
+    if key == "1" then
+      if hero.score > hero.ammocost then
+        hero.ammo = hero.ammo + 10
+        hero.score = hero.score - hero.ammocost
+      end
+    end
+    if key == "2" then
+      if hero.score > hero.lifecost then
+        hero.lives = hero.lives + 1
+        hero.score = hero.score - hero.lifecost
+      end
+    end
+  end
 end
 
 function CheckCollision(x1,y1,w1,h1, x2,y2,w2,h2)
@@ -230,7 +217,6 @@ function newBuilding()
 end
 
 function love.load()
-  math.randomseed( os.time() )
   -- new2DRandomTable(10, 10)
   love.window.setTitle('Invaders Must Die')
   love.graphics.setBackgroundColor(255, 255, 255)
@@ -247,6 +233,9 @@ function love.load()
   world.tab = 20
   world.time = 0
   world.pause = true
+  world.features = {}
+  world.features.life = {}
+  world.features.life.spriteDims = {9, 6}
   bombs.probability = 0.995
   stars = {}
   stars.population = 50
@@ -314,10 +303,10 @@ function love.update(dt)
       for ii, vv in ipairs(enemies) do
         if CheckCollision(v.x, v.y, 2, 5, vv.x, vv.y, vv.width, vv.height) then
           hero.score = hero.score + math.ceil(vv.y / 100)
-          hero.ammo = hero.ammo + math.ceil(vv.y / 100)
+          -- hero.ammo = hero.ammo + math.ceil(vv.y / 100)
           explosion = deepcopy(vv)
           explosion.sprite = vv.sprite1
-          explosion.duration = world.time + 1
+          explosion.duration = world.time + 0.5
           table.insert(explosions, explosion)
           table.remove(enemies, ii)
           table.remove(hero.shots, i)
@@ -366,6 +355,21 @@ function love.draw()
     love.graphics.setColor(255, 255, 0, 255 - star.y * 255/465)
     drawSprite(star, stars.sprite)
   end
+  -- The Store Menu
+  love.graphics.setColor(255, 255, 255, 255)
+  love.graphics.setFont(scoreFont)
+  love.graphics.printf("Press 1 for 10 ", world.tab, world.ground + world.tab, world.width, 'left')
+  love.graphics.printf("COST 5 POINTS ", world.tab * 20, world.ground + world.tab, world.width, 'left')
+  love.graphics.rectangle("fill", 16 * world.tab - hero.width / 2 + 3, world.ground + world.tab, 2, 5)
+  love.graphics.rectangle("fill", 16 * world.tab - 2 - hero.width / 2 + 3, world.ground + world.tab + 5, 6, 2) -- drawing bullets here is trivial / easier
+  love.graphics.printf("Press 2 for 1", world.tab, world.ground + world.tab * 2, world.width, 'left')
+  love.graphics.printf("COST 10 POINTS", world.tab* 20, world.ground + world.tab * 2, world.width, 'left')
+  local tempHero = deepcopy(hero)
+  tempHero.x = world.tab* 15
+  tempHero.y = world.ground + world.tab * 2 + 2
+  love.graphics.setColor(255, 0, 0, 255)
+  drawSprite(tempHero, tempHero.sprite)
+
   -- The City
   for i, building in ipairs(buildings) do
     love.graphics.setColor(building.random, building.random, building.random, 255)
@@ -373,16 +377,15 @@ function love.draw()
     love.graphics.setColor(building.random - 20, building.random - 20, building.random - 20, 255)
     love.graphics.rectangle("fill", building.x, building.y, building.width/2, building.height)
     love.graphics.setColor(255, 255, 0, 255)
-
   end
   -- The Hero
   if hero.protectedUntil > world.time then
     explodeSprite(hero, hero.sprite)
   else
-    love.graphics.setColor(255, 255, 0, 255)
+    love.graphics.setColor(255, 0, 0, 255)
     drawSprite(hero, hero.sprite)
   end
-  love.graphics.setColor(255, 255, 0, 255)
+  love.graphics.setColor(255, 0, 0, 255)
   for i = 1, hero.lives do
     local tempHero = deepcopy(hero)
     tempHero.x = world.width - i * 2.5 * world.tab
@@ -431,7 +434,7 @@ function love.draw()
       love.graphics.setColor(255, 255, 255, 255)
       love.graphics.printf("INVADERS MUST DIE", 0, 100, world.width, 'center')
       love.graphics.setFont(bodyFont)
-      love.graphics.printf("Press r to Lose Eventually", 0, 400, world.width, 'center')
+      love.graphics.printf("In SPACE because IF they hit \nthe ground then you will \ndie and that would be lame\n\nPress r to Lose Eventually", 0, 290, world.width, 'center')
     end
   end
 end
