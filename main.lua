@@ -71,6 +71,8 @@ function makeHero()
   hero.ammocost = 5
   hero.sprite = {{0, 0, 0, 0, 1, 0, 0, 0, 0}, {0, 0, 0, 1, 1, 1, 0, 0, 0}, {1, 1, 1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1, 1, 1}}
   hero.spriteDims = {9, 5}
+  hero.sineGun = false
+  hero.sineGunCost = 5
 end
 
 function makeEnemies()
@@ -119,6 +121,17 @@ function shoot()
     shot.y = hero.y
     table.insert(hero.shots, shot)
     hero.ammo = hero.ammo - 1
+    if hero.sineGun then
+      local shot = {}
+      shot.x = hero.x + hero.width
+      shot.y = hero.y + 5
+      table.insert(hero.shots, shot)
+      local shot = {}
+      shot.x = hero.x
+      shot.y = hero.y + 5
+      table.insert(hero.shots, shot)
+    end
+
   end
 end
 
@@ -148,6 +161,18 @@ function love.keyreleased(key)
       if hero.score > hero.lifecost then
         hero.lives = hero.lives + 1
         hero.score = hero.score - hero.lifecost
+      end
+    end
+    if key == "3" then
+      if hero.score > hero.sineGunCost and not hero.sineGun then
+        hero.sineGun = true
+        hero.score = hero.score - hero.sineGunCost
+      end
+    end
+    if key == "4" then
+      if hero.score > hero.sineGunCost and hero.speed < 300 then
+        hero.speed = hero.speed * 1.5
+        hero.score = hero.score - hero.sineGunCost
       end
     end
   end
@@ -297,6 +322,9 @@ function love.update(dt)
     -- Control Shots
     for i,v in ipairs(hero.shots) do
       v.y = v.y - dt * 500
+      if hero.sineGun then
+        v.x = v.x + 10 * math.sin(world.time * 100)
+      end
       if v.y == 0 then
         table.remove(hero.shots, i)
       end
@@ -330,10 +358,10 @@ function love.update(dt)
     if hero.lives < 1 then
       world.pause = true
     end
-    if math.mod(hero.score, 20) == 0 and hero.score > 19 then
+    if math.mod(hero.score, 2) == 0 and hero.score > 19 then
       enemies.speed = enemies.speed + 0.5
     end
-    if math.mod(hero.score, 50) == 0 and hero.score > 19 then
+    if math.mod(hero.score, 5) == 0 and hero.score > 19 then
       world.numberOfEnemies = world.numberOfEnemies + 1
     end
   end
@@ -364,6 +392,24 @@ function love.draw()
   love.graphics.rectangle("fill", 16 * world.tab - 2 - hero.width / 2 + 3, world.ground + world.tab + 5, 6, 2) -- drawing bullets here is trivial / easier
   love.graphics.printf("Press 2 for 1", world.tab, world.ground + world.tab * 2, world.width, 'left')
   love.graphics.printf("COST 10 POINTS", world.tab* 20, world.ground + world.tab * 2, world.width, 'left')
+
+  love.graphics.printf("Press 3 for UP ", world.tab, world.ground + world.tab * 3, world.width, 'left')
+  love.graphics.printf("COST 25 POINTS ", world.tab * 20, world.ground + world.tab * 3, world.width, 'left')
+
+  love.graphics.rectangle("fill", 16 * world.tab - hero.width / 2 + 3, world.ground + world.tab * 3, 2, 5)
+  love.graphics.rectangle("fill", 16 * world.tab - 2 - hero.width / 2 + 3, world.ground + world.tab * 3 + 5, 6, 2) -- drawing bullets here is trivial / easier
+
+  love.graphics.rectangle("fill", -hero.width / 2 + 16 * world.tab - hero.width / 2 + 3, 5 + world.ground + world.tab * 3, 2, 5)
+  love.graphics.rectangle("fill", -hero.width / 2 + 16 * world.tab - 2 - hero.width / 2 + 3, 5 + world.ground + world.tab * 3 + 5, 6, 2) -- drawing bullets here is trivial / easier
+
+  love.graphics.rectangle("fill", hero.width / 2 + 16 * world.tab - hero.width / 2 + 3, 5 + world.ground + world.tab * 3, 2, 5)
+  love.graphics.rectangle("fill", hero.width / 2 + 16 * world.tab - 2 - hero.width / 2 + 3, 5 + world.ground + world.tab * 3 + 5, 6, 2) -- drawing bullets here is trivial / easier
+
+  love.graphics.printf("Press 4 for UP SPEED", world.tab, world.ground + world.tab * 4, world.width, 'left')
+  love.graphics.printf("COST 25 POINTS ", world.tab * 20, world.ground + world.tab * 4, world.width, 'left')
+
+
+
   local tempHero = deepcopy(hero)
   tempHero.x = world.tab* 15
   tempHero.y = world.ground + world.tab * 2 + 2
@@ -400,10 +446,18 @@ function love.draw()
   -- The Enemies
   for i, v in ipairs(enemies) do
     love.graphics.setColor(v.r, v.g, v.b, v.a)
-    if math.floor((world.time + v.random) * 3) % 2 == 0 then
-      drawSprite(v, v.sprite2)
+    if not world.pause then
+      if math.floor((world.time + v.random) * 3) % 2 == 0 then
+        drawSprite(v, v.sprite2)
+      else
+        drawSprite(v, v.sprite1)
+      end
     else
-      drawSprite(v, v.sprite1)
+      if math.floor(v.random * 3) % 2 == 0 then
+        drawSprite(v, v.sprite2)
+      else
+        drawSprite(v, v.sprite1)
+      end
     end
   end
   -- The Explosions
@@ -428,13 +482,17 @@ function love.draw()
       love.graphics.setColor(255, 255, 255, 255)
       love.graphics.printf("GAME OVER", 0, 100, world.width, 'center')
       love.graphics.setFont(bodyFont)
-      love.graphics.printf("Press r to Lose Again", 0, 400, world.width, 'center')
+      if hero.ammo == 0 then
+        love.graphics.printf("\nDID You remember to buy enough ammo \n\n Press r to PLAY Again", 0, 290, world.width, 'center')
+      else
+        love.graphics.printf("\ndid you buy enough tanks \n\n Press r to PLAY Again", 0, 290, world.width, 'center')
+      end
     else
       love.graphics.setFont(titleFont)
       love.graphics.setColor(255, 255, 255, 255)
       love.graphics.printf("INVADERS MUST DIE", 0, 100, world.width, 'center')
       love.graphics.setFont(bodyFont)
-      love.graphics.printf("In SPACE because IF they hit \nthe ground then you will \ndie and that would be lame\n\nPress r to Lose Eventually", 0, 290, world.width, 'center')
+      love.graphics.printf("In SPACE because IF they hit \nthe ground then you will \ndie and that would be lame\n\nPress r to PLAY", 0, 290, world.width, 'center')
     end
   end
 end
