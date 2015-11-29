@@ -76,7 +76,6 @@ function makeHero()
 end
 
 function makeEnemies()
-  enemies.speed = 30
   for i = 0, world.numberOfEnemies - tablelength(enemies) do
     enemy = {}
     enemy.random = math.random()
@@ -141,6 +140,7 @@ function love.keyreleased(key)
   if key == "r" and world.pause then
     hero = {}
     enemies = {}
+    enemies.speed = 30
     makeHero()
     makeEnemies()
     explosions = {}
@@ -154,12 +154,14 @@ function love.keyreleased(key)
       if hero.score > hero.ammocost then
         hero.ammo = hero.ammo + 10
         hero.score = hero.score - hero.ammocost
+        world.ammoprompt = false
       end
     end
     if key == "2" then
       if hero.score > hero.lifecost then
         hero.lives = hero.lives + 1
         hero.score = hero.score - hero.lifecost
+        world.lifeprompt = false
       end
     end
     if key == "3" then
@@ -257,9 +259,12 @@ function love.load()
   world.tab = 20
   world.time = 0
   world.pause = true
-  world.difficultLatch = 5
+  world.populationLatch = 5
+  world.speedLatch = 10
   world.numberOfEnemies = 6
   bombs.probability = 0.995
+  world.ammoprompt = true
+  world.lifeprompt = true
   stars = {}
   stars.population = 50
   stars.spriteDims = {5, 5}
@@ -280,7 +285,9 @@ function love.load()
 end
 
 function love.update(dt)
-  world.time = world.time + dt
+  if not world.pause then
+    world.time = world.time + dt
+  end
   if not world.pause then
     local remEnemy = {}
     local remShot = {}
@@ -357,11 +364,15 @@ function love.update(dt)
       world.pause = true
     end
     -- Increase Difficulty
-    if hero.score > world.difficultLatch then
+    if hero.score > world.populationLatch then
         world.numberOfEnemies = world.numberOfEnemies + 1 -- Increase numbers
-        world.difficultLatch = hero.score + 15
-        print(world.numberOfEnemies)
+        world.populationLatch = hero.score + 15
       end
+  end
+  if hero.score > world.speedLatch then
+    enemies.speed = enemies.speed + 1
+    world.speedLatch = hero.score + 5
+    print(enemies.speed)
   end
 end
 
@@ -439,6 +450,7 @@ function love.draw()
   love.graphics.setFont(scoreFont)
   love.graphics.printf("SCORE " .. hero.score, world.tab, world.tab, world.width, 'left')
   love.graphics.printf("AMMO  " .. hero.ammo, world.tab, 2 * world.tab, world.width, 'left')
+  love.graphics.printf("TIME  " .. math.floor(world.time), world.tab, 3 * world.tab, world.width, 'left')
   -- The Enemies
   for i, v in ipairs(enemies) do
     love.graphics.setColor(v.r, v.g, v.b, v.a)
@@ -472,6 +484,16 @@ function love.draw()
     love.graphics.rectangle("fill", v.x - hero.width / 2 + 3, v.y + 5, 2, 6)
     love.graphics.rectangle("fill", v.x - 2 - hero.width / 2 + 3, v.y, 6, 2) -- drawing bullets here is trivial / easier
   end
+
+  if not world.pause and world.ammoprompt and hero.ammo <= 0 then
+    love.graphics.setFont(bodyFont)
+    love.graphics.printf("Press 1 for Ammo", 0, 290, world.width, 'center')
+  end
+  if not world.pause and world.lifeprompt and hero.lives == 2 then
+    love.graphics.setFont(bodyFont)
+    love.graphics.printf("Press 2 for life", 0, 290, world.width, 'center')
+  end
+
   if world.pause then
     if hero.lives == 0 then
       love.graphics.setFont(titleFont)
