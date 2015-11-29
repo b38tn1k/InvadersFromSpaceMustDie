@@ -76,7 +76,6 @@ function makeHero()
 end
 
 function makeEnemies()
-  world.numberOfEnemies = 6
   enemies.speed = 30
   for i = 0, world.numberOfEnemies - tablelength(enemies) do
     enemy = {}
@@ -170,7 +169,7 @@ function love.keyreleased(key)
       end
     end
     if key == "4" then
-      if hero.score > hero.sineGunCost and hero.speed < 300 then
+      if hero.score > hero.sineGunCost and hero.speed < 500 then
         hero.speed = hero.speed * 1.5
         hero.score = hero.score - hero.sineGunCost
       end
@@ -258,9 +257,8 @@ function love.load()
   world.tab = 20
   world.time = 0
   world.pause = true
-  world.features = {}
-  world.features.life = {}
-  world.features.life.spriteDims = {9, 6}
+  world.difficultLatch = 5
+  world.numberOfEnemies = 6
   bombs.probability = 0.995
   stars = {}
   stars.population = 50
@@ -276,7 +274,7 @@ function love.load()
   for i = 0, buildings.population do
     table.insert(buildings, newBuilding())
   end
-
+  enemies.speed = 30
   makeHero()
   makeEnemies()
 end
@@ -358,12 +356,12 @@ function love.update(dt)
     if hero.lives < 1 then
       world.pause = true
     end
-    if math.mod(hero.score, 2) == 0 and hero.score > 19 then
-      enemies.speed = enemies.speed + 0.5
-    end
-    if math.mod(hero.score, 5) == 0 and hero.score > 19 then
-      world.numberOfEnemies = world.numberOfEnemies + 1
-    end
+    -- Increase Difficulty
+    if hero.score > world.difficultLatch then
+        world.numberOfEnemies = world.numberOfEnemies + 1 -- Increase numbers
+        world.difficultLatch = hero.score + 15
+        print(world.numberOfEnemies)
+      end
   end
 end
 
@@ -407,8 +405,6 @@ function love.draw()
 
   love.graphics.printf("Press 4 for UP SPEED", world.tab, world.ground + world.tab * 4, world.width, 'left')
   love.graphics.printf("COST 25 POINTS ", world.tab * 20, world.ground + world.tab * 4, world.width, 'left')
-
-
 
   local tempHero = deepcopy(hero)
   tempHero.x = world.tab* 15
