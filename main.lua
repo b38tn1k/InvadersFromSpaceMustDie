@@ -304,6 +304,10 @@ function love.update(dt)
         makeBomb(v.x + v.width/2, v.y)
       end
       if v.y > (world.ground - v.height) then
+        local explosion = deepcopy(v)
+        explosion.sprite = v.sprite1
+        explosion.duration = world.time + 0.5
+        table.insert(explosions, explosion)
         table.remove(enemies, i)
         if hero.protectedUntil < world.time then
           hero.lives = hero.lives - 1
@@ -356,21 +360,33 @@ function love.update(dt)
       if explosion.duration < world.time then
         table.remove(explosions, h)
       else
-        explosion.height = explosion.height - 1
-        explosion.width = explosion.width - 1
+        if explosion.y > world.ground - 50 then
+          explosion.height = explosion.height + 1
+          explosion.width = explosion.width + 50
+        else
+          explosion.height = explosion.height - 1
+          explosion.width = explosion.width - 1
+        end
       end
+    end
+    if hero.ammo == 0 and hero.score < 5 then
+      hero.score = hero.score + dt
     end
     if hero.lives < 1 then
       world.pause = true
     end
     -- Increase Difficulty
-    if hero.score > world.populationLatch then
+    if math.floor(hero.score) > world.populationLatch then
         world.numberOfEnemies = world.numberOfEnemies + 1 -- Increase numbers
         world.populationLatch = hero.score + 15
       end
   end
-  if hero.score > world.speedLatch then
-    enemies.speed = enemies.speed + 1
+  if math.floor(hero.score) > world.speedLatch then
+    if world.speedLatch < 100 then
+      enemies.speed = enemies.speed + 1
+    else
+      enemies.speed = enemies.speed + 5
+    end
     world.speedLatch = hero.score + 5
     print(enemies.speed)
   end
@@ -382,6 +398,14 @@ function love.draw()
     love.graphics.setColor(20 + 2 * i, 15 + 2 * i, i*10, 255) -- ehh
     love.graphics.rectangle("fill", 0, i*20, world.width, 20)
   end
+  for j, exp in ipairs(explosions) do
+    if exp.duration > world.time and exp.y > world.ground - 50 then
+      for i = 0, 600 do
+        love.graphics.setColor(255 * (exp.duration - world.time + 0.5), 255 * (exp.duration - world.time + 0.5), 0, 255 * (exp.duration - world.time)) -- ehh
+        love.graphics.rectangle("fill", 0, i*20, world.width, 20)
+      end
+    end
+  end
   -- The Ground
   for i = 0, 40 do
     love.graphics.setColor(100, 255 - i * 20, 60 , 255) -- ehh
@@ -389,7 +413,7 @@ function love.draw()
   end
   -- The Stars
   for i, star in ipairs(stars) do
-    love.graphics.setColor(255, 255, 0, 255 - star.y * 255/465)
+    love.graphics.setColor(255, 255, 0, 255 - star.y * (255/465 * math.sin(world.time + star.x)))
     drawSprite(star, stars.sprite)
   end
   -- The Store Menu
@@ -448,7 +472,7 @@ function love.draw()
   end
   love.graphics.setColor(255, 255, 255, 255)
   love.graphics.setFont(scoreFont)
-  love.graphics.printf("SCORE " .. hero.score, world.tab, world.tab, world.width, 'left')
+  love.graphics.printf("SCORE " .. math.floor(hero.score), world.tab, world.tab, world.width, 'left')
   love.graphics.printf("AMMO  " .. hero.ammo, world.tab, 2 * world.tab, world.width, 'left')
   love.graphics.printf("TIME  " .. math.floor(world.time), world.tab, 3 * world.tab, world.width, 'left')
   -- The Enemies
@@ -489,7 +513,7 @@ function love.draw()
     love.graphics.setFont(bodyFont)
     love.graphics.printf("Press 1 for Ammo", 0, 290, world.width, 'center')
   end
-  if not world.pause and world.lifeprompt and hero.lives == 2 then
+  if not world.pause and world.lifeprompt and hero.lives == 2 and not world.ammoprompt then
     love.graphics.setFont(bodyFont)
     love.graphics.printf("Press 2 for life", 0, 290, world.width, 'center')
   end
