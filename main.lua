@@ -141,13 +141,16 @@ function love.keyreleased(key)
     hero = {}
     enemies = {}
     enemies.speed = 30
-    makeHero()
-    makeEnemies()
     explosions = {}
     bombs = {}
     bombs.probability = 0.995
     world.pause = false
     world.time = 0
+    world.populationLatch = 5
+    world.speedLatch = 10
+    world.numberOfEnemies = 6
+    makeHero()
+    makeEnemies()
   end
   if not world.pause then
     if key == "1" then
@@ -377,12 +380,15 @@ function love.update(dt)
     end
     -- Increase Difficulty
     if math.floor(hero.score) > world.populationLatch then
-        world.numberOfEnemies = world.numberOfEnemies + 1 -- Increase numbers
-        world.populationLatch = hero.score + 15
+        if world.numberOfEnemies < 30 then
+          print(world.numberOfEnemies)
+          world.numberOfEnemies = world.numberOfEnemies + 1 -- Increase numbers
+          world.populationLatch = hero.score + 15
+        end
       end
   end
-  if math.floor(hero.score) > world.speedLatch then
-    if world.speedLatch < 100 then
+  if math.floor(hero.score) > world.speedLatch and enemies.speed < 60 then
+    if world.speedLatch < 45 then
       enemies.speed = enemies.speed + 1
     else
       enemies.speed = enemies.speed + 5
