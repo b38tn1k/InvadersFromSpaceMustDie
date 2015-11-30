@@ -69,18 +69,17 @@ function makeHero()
   hero.score = 0
   hero.lifecost = 10
   hero.ammocost = 5
+  hero.sineGunCost = 25
   hero.sprite = {{0, 0, 0, 0, 1, 0, 0, 0, 0}, {0, 0, 0, 1, 1, 1, 0, 0, 0}, {1, 1, 1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1, 1, 1}}
   hero.spriteDims = {9, 5}
   hero.sineGun = 0
-  hero.sineGunCost = 25
+  hero.afk = false
 end
 
-function makeEnemies()
+function makeEnemies() -- I try not to
   for i = 0, world.numberOfEnemies - tablelength(enemies) do
     enemy = {}
     enemy.random = math.random()
-    enemy.width = 44
-    enemy.height = 32
     enemy.x = world.width * math.random()
     enemy.y = 0
     enemy.speed = enemies.speed
@@ -97,9 +96,29 @@ function makeEnemies()
       enemy.b = 255
     end
     enemy.a = 0
-    enemy.spriteDims = {11, 8}
-    enemy.sprite1 = {{0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0}, {0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0}, {0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0}, {0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0}, {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, {1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1}, {1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1}, {0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0}}
-    enemy.sprite2 = {{0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0}, {1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1}, {1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1}, {1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, {0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0}, {0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0}, {0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0}}
+    local dice = math.random()
+    if dice < 0.33 then
+      -- my favourite guy
+      enemy.sprite1 = {{0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0}, {0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0}, {0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0}, {0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0}, {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, {1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1}, {1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1}, {0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0}}
+      enemy.sprite2 = {{0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0}, {1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1}, {1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1}, {1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, {0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0}, {0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0}, {0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0}}
+      enemy.width = 44
+      enemy.height = 32
+      enemy.spriteDims = {11, 8}
+    elseif dice > 0.66 then
+      -- skull man
+      enemy.sprite1 = {{0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0}, {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0}, {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, {0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0}, {0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0}, {1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1}}
+      enemy.sprite2 = {{0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0}, {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0}, {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, {0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0}, {0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0}, {0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0}}
+      enemy.width = 48
+      enemy.height = 32
+      enemy.spriteDims = {12, 8}
+    elseif dice < 0.66 then
+      -- squid man
+      enemy.sprite1 = {{0, 0, 0, 1, 1, 0, 0, 0}, {0, 0, 1, 1, 1 ,1, 0, 0}, {0, 1, 1, 1, 1, 1, 1, 0}, {1, 1, 0, 1, 1, 0, 1, 1}, {1, 1, 1, 1, 1, 1, 1, 1}, {0, 1, 0, 1, 1, 0, 1, 0}, {1, 0, 0, 0, 0, 0, 0, 1}, {0, 1, 0, 0, 0, 0, 1, 0}}
+      enemy.sprite2 = {{0, 0, 0, 1, 1, 0, 0, 0}, {0, 0, 1, 1, 1 ,1, 0, 0}, {0, 1, 1, 1, 1, 1, 1, 0}, {1, 1, 0, 1, 1, 0, 1, 1}, {1, 1, 1, 1, 1, 1, 1, 1}, {0, 0, 1, 0, 0, 1, 0, 0}, {0, 1, 0, 1, 1, 0, 1, 0}, {1, 0, 1, 0, 0, 1, 0, 1}}
+      enemy.width = 32
+      enemy.height = 32
+      enemy.spriteDims = {8, 8}
+    end
     table.insert(enemies, enemy)
   end
 end
@@ -138,7 +157,7 @@ function love.keyreleased(key)
   if key == " " then
       shoot()
   end
-  if key == "r" and world.pause then
+  if key == "h" and world.pause then
     hero = {}
     enemies = {}
     enemies.speed = 30
@@ -152,6 +171,32 @@ function love.keyreleased(key)
     world.numberOfEnemies = 6
     makeHero()
     makeEnemies()
+    boss.lifeThreshold = 5
+    hero.sineGunCost = 25
+  end
+  if key == "e" and world.pause then
+    hero = {}
+    enemies = {}
+    enemies.speed = 20
+    explosions = {}
+    bombs = {}
+    bombs.probability = 0.997
+    world.pause = false
+    world.time = 0
+    world.populationLatch = 6
+    world.speedLatch = 12
+    world.numberOfEnemies = 5
+    makeHero()
+    makeEnemies()
+    hero.ammo = hero.ammo + 10
+    hero.ammocost = 3
+    boss.lifeThreshold = 6
+    hero.sineGunCost = 20
+
+  end
+  if key == "p" then
+    world.pause = not world.pause
+    hero.afk = not hero.afk
   end
   if not world.pause then
     if key == "1" then
@@ -259,6 +304,19 @@ function love.load()
   world = {}
   explosions = {}
   bombs = {}
+  boss = {}
+  boss.lifeThreshold = 5
+  boss.sprite = {{0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0}, {0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0}, {0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0}, {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, {0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1,0, 0 }, {0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0}}
+  boss.spriteDims = {16, 7}
+  boss.width = 64
+  boss.height = 28
+  boss.active = false
+  boss.x = -40
+  boss.y = 100
+  boss.travelled = 0
+  boss.interval = 0
+  boss.speed = 0
+  boss.lasttime = 0
   world.width, world.height, world.flags = love.window.getMode()
   world.ground = 465
   world.tab = 20
@@ -270,6 +328,7 @@ function love.load()
   bombs.probability = 0.995
   world.ammoprompt = true
   world.lifeprompt = true
+  world.animTime = 0
   stars = {}
   stars.population = 50
   stars.spriteDims = {5, 5}
@@ -290,10 +349,30 @@ function love.load()
 end
 
 function love.update(dt)
+  world.animTime = world.animTime + dt
   if not world.pause then
     world.time = world.time + dt
   end
   if not world.pause then
+    if boss.active then
+      boss.x = boss.x + dt * (hero.speed + 5)
+      boss.y = boss.y + math.sin(world.time)
+      if boss.x > boss.interval then
+        makeBomb(boss.x + boss.width/4, boss.y)
+        boss.interval = boss.x + 50
+      end
+    end
+
+    if boss.x > world.width + boss.width then
+      boss.active = false
+      boss.x = -50
+      boss.travelled = 0
+    end
+    if hero.lives > 5 and boss.lasttime < (world.time -30) then
+      boss.active = true
+      boss.lasttime = world.time
+    end
+
     local remEnemy = {}
     local remShot = {}
     controlHero(dt)
@@ -324,6 +403,13 @@ function love.update(dt)
     for i,v in ipairs(bombs) do
       v.y = v.y + dt * 500
       if v.y > world.ground then
+        local bang = newStar()
+        bang.x = v.x
+        bang.y = v.y
+        explosion = deepcopy(bang)
+        explosion.sprite = stars.sprite
+        explosion.duration = world.time + 0.2
+        table.insert(explosions, explosion)
         table.remove(bombs, i)
       end
       if CheckCollision(v.x, v.y, 2, 5, hero.x, hero.y, hero.width, hero.height) then
@@ -353,6 +439,19 @@ function love.update(dt)
           table.remove(enemies, ii)
           table.remove(hero.shots, i)
         end
+
+      if CheckCollision(v.x, v.y, 2, 5, boss.x, boss.y, boss.width, boss.height) then
+        explosion = deepcopy(boss)
+        explosion.duration = world.time + 0.5
+        table.insert(explosions, explosion)
+        table.remove(hero.shots, i)
+        hero.score = hero.score + 2
+        boss.active = false
+        boss.x = -50
+        boss.travelled = 0
+      end
+
+
         if vv.x < 0 then
           vv.x = vv.x + world.width
         end
@@ -419,33 +518,33 @@ function love.draw()
   end
   -- The Stars
   for i, star in ipairs(stars) do
-    love.graphics.setColor(255, 255, 0, 255 - star.y * (255/465 * math.sin(world.time + star.x)))
+    love.graphics.setColor(255, 255, 0, 255 - star.y * (255/465 * math.sin(world.animTime + star.x)))
     drawSprite(star, stars.sprite)
   end
   -- The Store Menu
   love.graphics.setColor(255, 255, 255, 255)
   love.graphics.setFont(scoreFont)
-  love.graphics.printf("Press 1 for 10 ", world.tab, world.ground + world.tab, world.width, 'left')
-  love.graphics.printf("COST "..hero.ammocost .." POINTS ", world.tab * 20, world.ground + world.tab, world.width, 'left')
-  love.graphics.rectangle("fill", 16 * world.tab - hero.width / 2 + 3, world.ground + world.tab, 2, 5)
-  love.graphics.rectangle("fill", 16 * world.tab - 2 - hero.width / 2 + 3, world.ground + world.tab + 5, 6, 2) -- drawing bullets here is trivial / easier
-  love.graphics.printf("Press 2 for 1", world.tab, world.ground + world.tab * 2, world.width, 'left')
-  love.graphics.printf("COST "..hero.lifecost .." POINTS", world.tab* 20, world.ground + world.tab * 2, world.width, 'left')
+  love.graphics.printf("Press 1 for 10 ", world.tab + world.tab, world.ground + world.tab, world.width, 'left')
+  love.graphics.printf("COST "..hero.ammocost .." POINTS ", world.tab + world.tab * 20, world.ground + world.tab, world.width, 'left')
+  love.graphics.rectangle("fill", world.tab + 16 * world.tab - hero.width / 2 + 3, world.ground + world.tab, 2, 5)
+  love.graphics.rectangle("fill", world.tab + 16 * world.tab - 2 - hero.width / 2 + 3, world.ground + world.tab + 5, 6, 2) -- drawing bullets here is trivial / easier
+  love.graphics.printf("Press 2 for 1", world.tab + world.tab, world.ground + world.tab * 2, world.width, 'left')
+  love.graphics.printf("COST "..hero.lifecost .." POINTS", world.tab + world.tab* 20, world.ground + world.tab * 2, world.width, 'left')
 
-  love.graphics.printf("Press 3 for 10 ", world.tab, world.ground + world.tab * 3, world.width, 'left')
-  love.graphics.printf("COST "..hero.sineGunCost .." POINTS ", world.tab * 20, world.ground + world.tab * 3, world.width, 'left')
+  love.graphics.printf("Press 3 for 10 ", world.tab + world.tab, world.ground + world.tab * 3, world.width, 'left')
+  love.graphics.printf("COST "..hero.sineGunCost .." POINTS ", world.tab + world.tab * 20, world.ground + world.tab * 3, world.width, 'left')
 
-  love.graphics.rectangle("fill", 16 * world.tab - hero.width / 2 + 3, world.ground + world.tab * 3, 2, 5)
-  love.graphics.rectangle("fill", 16 * world.tab - 2 - hero.width / 2 + 3, world.ground + world.tab * 3 + 5, 6, 2) -- drawing bullets here is trivial / easier
+  love.graphics.rectangle("fill", world.tab + 16 * world.tab - hero.width / 2 + 3, world.ground + world.tab * 3, 2, 5)
+  love.graphics.rectangle("fill", world.tab + 16 * world.tab - 2 - hero.width / 2 + 3, world.ground + world.tab * 3 + 5, 6, 2) -- drawing bullets here is trivial / easier
 
-  love.graphics.rectangle("fill", -hero.width / 2 + 16 * world.tab - hero.width / 2 + 3, 5 + world.ground + world.tab * 3, 2, 5)
-  love.graphics.rectangle("fill", -hero.width / 2 + 16 * world.tab - 2 - hero.width / 2 + 3, 5 + world.ground + world.tab * 3 + 5, 6, 2) -- drawing bullets here is trivial / easier
+  love.graphics.rectangle("fill", world.tab + -hero.width / 2 + 16 * world.tab - hero.width / 2 + 3, 5 + world.ground + world.tab * 3, 2, 5)
+  love.graphics.rectangle("fill", world.tab + -hero.width / 2 + 16 * world.tab - 2 - hero.width / 2 + 3, 5 + world.ground + world.tab * 3 + 5, 6, 2) -- drawing bullets here is trivial / easier
 
-  love.graphics.rectangle("fill", hero.width / 2 + 16 * world.tab - hero.width / 2 + 3, 5 + world.ground + world.tab * 3, 2, 5)
-  love.graphics.rectangle("fill", hero.width / 2 + 16 * world.tab - 2 - hero.width / 2 + 3, 5 + world.ground + world.tab * 3 + 5, 6, 2) -- drawing bullets here is trivial / easier
+  love.graphics.rectangle("fill", world.tab + hero.width / 2 + 16 * world.tab - hero.width / 2 + 3, 5 + world.ground + world.tab * 3, 2, 5)
+  love.graphics.rectangle("fill", world.tab + hero.width / 2 + 16 * world.tab - 2 - hero.width / 2 + 3, 5 + world.ground + world.tab * 3 + 5, 6, 2) -- drawing bullets here is trivial / easier
 
-  love.graphics.printf("Press 4 for UP SPEED", world.tab, world.ground + world.tab * 4, world.width, 'left')
-  love.graphics.printf("COST "..hero.sineGunCost .." POINTS ", world.tab * 20, world.ground + world.tab * 4, world.width, 'left')
+  love.graphics.printf("Press 4 for UP SPEED", world.tab + world.tab, world.ground + world.tab * 4, world.width, 'left')
+  love.graphics.printf("COST "..hero.sineGunCost .." POINTS ", world.tab + world.tab * 20, world.ground + world.tab * 4, world.width, 'left')
 
   local tempHero = deepcopy(hero)
   tempHero.x = world.tab* 15
@@ -498,9 +597,17 @@ function love.draw()
       end
     end
   end
+  if boss.active then
+    -- The boss
+    local randomBossR = math.random() * 255
+    local randomBossG = randomBossR + 128
+    local randomBossB = randomBossR - 128
+    love.graphics.setColor(randomBossR, randomBossG, randomBossB, 255)
+    drawSprite(boss, boss.sprite)
+  end
   -- The Explosions
   for h, explosion in ipairs(explosions) do
-    explodeSprite(explosion, explosion.sprite)
+      explodeSprite(explosion, explosion.sprite)
   end
   -- The Bullets
   love.graphics.setColor(255, 255, 255, 255)
@@ -524,23 +631,31 @@ function love.draw()
     love.graphics.printf("Press 2 for life", 0, 290, world.width, 'center')
   end
 
-  if world.pause then
+  if world.pause and not hero.afk then
     if hero.lives == 0 then
       love.graphics.setFont(titleFont)
       love.graphics.setColor(255, 255, 255, 255)
       love.graphics.printf("GAME OVER", 0, 100, world.width, 'center')
       love.graphics.setFont(bodyFont)
+      -- The Unnecessary Fire
+      for f = 0, 100 do
+        local flamesprite = deepcopy(hero)
+        flamesprite.y = world.ground - flamesprite.height + 6
+        flamesprite.x = (f * world.width )/100
+        explodeSprite(flamesprite, flamesprite.sprite)
+      end
+      love.graphics.setColor(255, 255, 255, 255)
       if hero.ammo == 0 then
-        love.graphics.printf("\nDID You remember to buy enough ammo \n\n Press r to PLAY Again", 0, 290, world.width, 'center')
+        love.graphics.printf("\nDID You remember to buy enough ammo \n\nHard H\nEasy E", 0, 290, world.width, 'center')
       else
-        love.graphics.printf("\ndid you buy enough tanks \n\n Press r to PLAY Again", 0, 290, world.width, 'center')
+        love.graphics.printf("\ndid you buy enough tanks \n\nHard H\nEasy E", 0, 290, world.width, 'center')
       end
     else
       love.graphics.setFont(titleFont)
       love.graphics.setColor(255, 255, 255, 255)
       love.graphics.printf("INVADERS MUST DIE", 0, 100, world.width, 'center')
       love.graphics.setFont(bodyFont)
-      love.graphics.printf("In SPACE because IF they hit \nthe ground then you will \ndie and that would be lame\n\nPress r to PLAY", 0, 290, world.width, 'center')
+      love.graphics.printf("In SPACE because IF they hit \nthe ground then you will \ndie and that would be lame\n\nHard H\nEasy E", 0, 290, world.width, 'center')
     end
   end
 end
