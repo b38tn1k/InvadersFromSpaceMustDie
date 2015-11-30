@@ -511,7 +511,7 @@ function love.draw()
   -- The Bombs
   love.graphics.setColor(255, 255, 255, 255)
   for i,v in ipairs(bombs) do
-    love.graphics.rectangle("fill", v.x - hero.width / 2 + 3, v.y + 5, 2, 6)
+    love.graphics.rectangle("fill", v.x - hero.width / 2 + 3, v.y + 4, 2, 6)
     love.graphics.rectangle("fill", v.x - 2 - hero.width / 2 + 3, v.y + 2, 6, 2) -- drawing bullets here is trivial / easier
   end
 
