@@ -71,7 +71,7 @@ function makeHero()
   hero.ammocost = 5
   hero.sprite = {{0, 0, 0, 0, 1, 0, 0, 0, 0}, {0, 0, 0, 1, 1, 1, 0, 0, 0}, {1, 1, 1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1, 1, 1}}
   hero.spriteDims = {9, 5}
-  hero.sineGun = false
+  hero.sineGun = 0
   hero.sineGunCost = 25
 end
 
@@ -119,7 +119,8 @@ function shoot()
     shot.y = hero.y
     table.insert(hero.shots, shot)
     hero.ammo = hero.ammo - 1
-    if hero.sineGun then
+    if hero.sineGun > 0 then
+      hero.sineGun = hero.sineGun - 1
       local shot = {}
       shot.x = hero.x + hero.width
       shot.y = hero.y + 5
@@ -154,22 +155,23 @@ function love.keyreleased(key)
   end
   if not world.pause then
     if key == "1" then
-      if hero.score > hero.ammocost then
+      if hero.score >= hero.ammocost then
         hero.ammo = hero.ammo + 10
         hero.score = hero.score - hero.ammocost
         world.ammoprompt = false
       end
     end
     if key == "2" then
-      if hero.score > hero.lifecost then
+      if hero.score >= hero.lifecost then
         hero.lives = hero.lives + 1
         hero.score = hero.score - hero.lifecost
         world.lifeprompt = false
       end
     end
     if key == "3" then
-      if hero.score > hero.sineGunCost and not hero.sineGun then
-        hero.sineGun = true
+      if hero.score >= hero.sineGunCost then
+        hero.sineGun = hero.sineGun + 10
+        hero.ammo = hero.ammo + 10
         hero.score = hero.score - hero.sineGunCost
       end
     end
@@ -334,7 +336,7 @@ function love.update(dt)
     -- Control Shots
     for i,v in ipairs(hero.shots) do
       v.y = v.y - dt * 500
-      if hero.sineGun then
+      if hero.sineGun > 0 then
         v.x = v.x + 10 * math.sin(world.time * 100)
       end
       if v.y == 0 then
@@ -424,14 +426,14 @@ function love.draw()
   love.graphics.setColor(255, 255, 255, 255)
   love.graphics.setFont(scoreFont)
   love.graphics.printf("Press 1 for 10 ", world.tab, world.ground + world.tab, world.width, 'left')
-  love.graphics.printf("COST 5 POINTS ", world.tab * 20, world.ground + world.tab, world.width, 'left')
+  love.graphics.printf("COST "..hero.ammocost .." POINTS ", world.tab * 20, world.ground + world.tab, world.width, 'left')
   love.graphics.rectangle("fill", 16 * world.tab - hero.width / 2 + 3, world.ground + world.tab, 2, 5)
   love.graphics.rectangle("fill", 16 * world.tab - 2 - hero.width / 2 + 3, world.ground + world.tab + 5, 6, 2) -- drawing bullets here is trivial / easier
   love.graphics.printf("Press 2 for 1", world.tab, world.ground + world.tab * 2, world.width, 'left')
-  love.graphics.printf("COST 10 POINTS", world.tab* 20, world.ground + world.tab * 2, world.width, 'left')
+  love.graphics.printf("COST "..hero.lifecost .." POINTS", world.tab* 20, world.ground + world.tab * 2, world.width, 'left')
 
-  love.graphics.printf("Press 3 for UP ", world.tab, world.ground + world.tab * 3, world.width, 'left')
-  love.graphics.printf("COST 25 POINTS ", world.tab * 20, world.ground + world.tab * 3, world.width, 'left')
+  love.graphics.printf("Press 3 for 10 ", world.tab, world.ground + world.tab * 3, world.width, 'left')
+  love.graphics.printf("COST "..hero.sineGunCost .." POINTS ", world.tab * 20, world.ground + world.tab * 3, world.width, 'left')
 
   love.graphics.rectangle("fill", 16 * world.tab - hero.width / 2 + 3, world.ground + world.tab * 3, 2, 5)
   love.graphics.rectangle("fill", 16 * world.tab - 2 - hero.width / 2 + 3, world.ground + world.tab * 3 + 5, 6, 2) -- drawing bullets here is trivial / easier
@@ -443,7 +445,7 @@ function love.draw()
   love.graphics.rectangle("fill", hero.width / 2 + 16 * world.tab - 2 - hero.width / 2 + 3, 5 + world.ground + world.tab * 3 + 5, 6, 2) -- drawing bullets here is trivial / easier
 
   love.graphics.printf("Press 4 for UP SPEED", world.tab, world.ground + world.tab * 4, world.width, 'left')
-  love.graphics.printf("COST 25 POINTS ", world.tab * 20, world.ground + world.tab * 4, world.width, 'left')
+  love.graphics.printf("COST "..hero.sineGunCost .." POINTS ", world.tab * 20, world.ground + world.tab * 4, world.width, 'left')
 
   local tempHero = deepcopy(hero)
   tempHero.x = world.tab* 15
