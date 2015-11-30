@@ -547,7 +547,7 @@ function love.draw()
   love.graphics.printf("COST "..hero.sineGunCost .." POINTS ", world.tab + world.tab * 20, world.ground + world.tab * 4, world.width, 'left')
 
   local tempHero = deepcopy(hero)
-  tempHero.x = world.tab* 15
+  tempHero.x = world.tab* 15 + world.tab + 2
   tempHero.y = world.ground + world.tab * 2 + 2
   love.graphics.setColor(255, 0, 0, 255)
   drawSprite(tempHero, tempHero.sprite)
