@@ -72,7 +72,7 @@ function makeHero()
   hero.sprite = {{0, 0, 0, 0, 1, 0, 0, 0, 0}, {0, 0, 0, 1, 1, 1, 0, 0, 0}, {1, 1, 1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1, 1, 1}}
   hero.spriteDims = {9, 5}
   hero.sineGun = false
-  hero.sineGunCost = 5
+  hero.sineGunCost = 25
 end
 
 function makeEnemies()
@@ -173,7 +173,7 @@ function love.keyreleased(key)
         hero.score = hero.score - hero.sineGunCost
       end
     end
-    if key == "4" then
+    if key == "4" then -- speed increase
       if hero.score > hero.sineGunCost and hero.speed < 500 then
         hero.speed = hero.speed * 1.5
         hero.score = hero.score - hero.sineGunCost
@@ -214,7 +214,6 @@ function addMoreEnemies()
 end
 
 function new2DRandomTable(xLength, yLenth)
-  print(xLength)
   local new2D = {}
   for i = 0, xLength do
     local row = {}
@@ -246,6 +245,7 @@ function newBuilding()
 end
 
 function love.load()
+  math.randomseed(os.time())
   -- new2DRandomTable(10, 10)
   love.window.setTitle('Invaders Must Die')
   love.graphics.setBackgroundColor(255, 255, 255)
@@ -381,7 +381,6 @@ function love.update(dt)
     -- Increase Difficulty
     if math.floor(hero.score) > world.populationLatch then
         if world.numberOfEnemies < 30 then
-          print(world.numberOfEnemies)
           world.numberOfEnemies = world.numberOfEnemies + 1 -- Increase numbers
           world.populationLatch = hero.score + 15
         end
@@ -394,7 +393,6 @@ function love.update(dt)
       enemies.speed = enemies.speed + 5
     end
     world.speedLatch = hero.score + 5
-    print(enemies.speed)
   end
 end
 
@@ -512,7 +510,7 @@ function love.draw()
   love.graphics.setColor(255, 255, 255, 255)
   for i,v in ipairs(bombs) do
     love.graphics.rectangle("fill", v.x - hero.width / 2 + 3, v.y + 5, 2, 6)
-    love.graphics.rectangle("fill", v.x - 2 - hero.width / 2 + 3, v.y, 6, 2) -- drawing bullets here is trivial / easier
+    love.graphics.rectangle("fill", v.x - 2 - hero.width / 2 + 3, v.y + 2, 6, 2) -- drawing bullets here is trivial / easier
   end
 
   if not world.pause and world.ammoprompt and hero.ammo <= 0 then
