@@ -366,7 +366,7 @@ function love.update(dt)
     if boss.x > world.width + boss.width then
       boss.active = false
       boss.x = -50
-      boss.travelled = 0
+      boss.interval = 0
     end
     if hero.lives > 5 and boss.lasttime < (world.time -30) then
       boss.active = true
