@@ -211,6 +211,7 @@ function love.keyreleased(key)
         hero.lives = hero.lives + 1
         hero.score = hero.score - hero.lifecost
         world.lifeprompt = false
+	hero.lifecost = hero.lifecost + 1
       end
     end
     if key == "3" then
